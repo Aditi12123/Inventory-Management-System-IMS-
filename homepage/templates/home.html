@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+
+<!-- Enhanced Header Section -->
+<div class="text-dark display-4 fw-bold border-bottom pb-2 mb-4" style="background-color: #f8f9fa; padding: 20px; border-radius: 15px;">
+    Welcome, {{ request.user.username }}
+</div>
+
+<!-- Chart Container with Hover Effect -->
+<div id="container" class="p-3 mb-4" style="position: relative; height:45vh; border: 1.2mm ridge #4e6570; border-radius: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); transition: all 0.3s ease-in-out;">
+    <canvas id="bar-graph"></canvas>
+</div>
+
+<!-- Action Buttons with Hover Effect -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{% url 'select-supplier' %}" class="btn btn-success btn-lg w-100 rounded-pill" style="background: linear-gradient(45deg, #28a745, #218838); border: none; transition: transform 0.3s ease;">
+            New Incoming Stock
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'new-sale' %}" class="btn btn-success btn-lg w-100 rounded-pill" style="background: linear-gradient(45deg, #28a745, #218838); border: none; transition: transform 0.3s ease;">
+            New Outgoing Stock
+        </a>
+    </div>
+</div>
+
+<!-- Recent Transactions Section with Card Style -->
+<div class="row">
+    <!-- Recent Sales -->
+    <div class="col-md-6">
+        <h5 class="text-primary border-bottom pb-1">Recent Sales</h5>
+        <div class="card p-3">
+            {% for item in sales %}
+                {% if not forloop.first %}<hr>{% endif %}
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        Bill No: #{{ item.billno }} <br>
+                        Purchased by <strong>{{ item.name }}</strong> <br>
+                        <small><i>{{ item.time.date }}</i></small>
+                    </div>
+                    <div class="col-md-3">
+                        ${{ item.get_total_price }} <br>
+                        <a href="{% url 'sale-bill' item.billno %}">View Bill</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Purchases -->
+    <div class="col-md-6">
+        <h5 class="text-primary border-bottom pb-1">Recent Purchases</h5>
+        <div class="card p-3">
+            {% for item in purchases %}
+                {% if not forloop.first %}<hr>{% endif %}
+                <div class="row mb-2">
+                    <div class="col-md-9">
+                        Bill No: #{{ item.billno }} <br>
+                        Purchased from <strong>{{ item.supplier.name }}</strong> <br>
+                        <small><i>{{ item.time.date }}</i></small>
+                    </div>
+                    <div class="col-md-3">
+                        ${{ item.get_total_price }} <br>
+                        <a href="{% url 'purchase-bill' item.billno %}">View Bill</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Chart JS -->
+<script src="{% static 'js/Chart.min.js' %}"></script>
+<script>
+    Chart.defaults.global.defaultFontColor = '#3c3c3c';
+
+    var barConfig = {
+        type: 'bar',
+        data: {
+            datasets: [{
+                backgroundColor: '#f39c12',  // Changed color to orange
+                borderRadius: 10,            // Rounded bar corners
+                hoverBackgroundColor: '#e67e22', // Slightly darker orange on hover
+                label: 'Stock in Inventory',
+                data: {{ data|safe }},
+            }],
+            labels: {{ labels|safe }}
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            size: 14
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        font: {
+                            size: 13
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    window.onload = function () {
+        var ctx = document.getElementById('bar-graph').getContext('2d');
+        window.BarStock = new Chart(ctx, barConfig);
+    };
+</script>
+
+
+{% endblock content %}
